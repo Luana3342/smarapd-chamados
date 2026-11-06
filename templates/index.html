@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="pt-br"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Smarapd • Chamados de Implantação</title>
+<style>
+body{font-family:system-ui,sans-serif;background:#f1f5f9;margin:0;color:#0f172a}
+header{background:#0f766e;color:#fff;padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center}
+header a{color:#fff;margin-left:1rem}
+main{max-width:1000px;margin:1.5rem auto;padding:0 1rem}
+.card{background:#fff;border-radius:12px;box-shadow:0 2px 12px #0001;padding:1rem;margin-bottom:1rem}
+input,select,button{padding:.5rem;border:1px solid #cbd5e1;border-radius:8px;font-size:.95rem}
+button{background:#0f766e;color:#fff;border:0;cursor:pointer}
+button.del{background:#b91c1c}
+.add{display:grid;grid-template-columns:1fr 3fr 1.3fr 1.3fr auto;gap:.5rem}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:.5rem;border-bottom:1px solid #e2e8f0;vertical-align:middle}
+td form{display:inline-flex;gap:.4rem;margin:0}
+.msg{background:#fef3c7;padding:.6rem;border-radius:8px;margin-bottom:1rem}
+.tag{padding:.15rem .5rem;border-radius:99px;font-size:.8rem;background:#e2e8f0}
+.Concluído{background:#bbf7d0}.Aberto{background:#fecaca}.Em{background:#fde68a}
+@media(max-width:700px){.add{grid-template-columns:1fr}}
+</style></head><body>
+<header><strong>Smarapd • Chamados de Implantação</strong>
+<span><a href="/export.csv">Exportar CSV</a><a href="/logout">Sair</a></span></header>
+<main>
+  {% for m in get_flashed_messages() %}<div class="msg">{{ m }}</div>{% endfor %}
+
+  <div class="card">
+    <form class="add" method="post" action="/add">
+      <input name="numero" placeholder="Nº chamado" required>
+      <input name="titulo" placeholder="Título do chamado" required>
+      <select name="status">{% for s in status %}<option>{{ s }}</option>{% endfor %}</select>
+      <input name="data_conclusao" type="date" title="Data de conclusão (opcional)">
+      <button>Adicionar</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <form method="get" style="margin-bottom:.8rem">
+      Filtrar:
+      <select name="status" onchange="this.form.submit()">
+        <option value="">Todos</option>
+        {% for s in status %}<option {{ 'selected' if s==filtro }}>{{ s }}</option>{% endfor %}
+      </select>
+      <span style="margin-left:1rem;color:#64748b">{{ chamados|length }} chamado(s)</span>
+    </form>
+    <div style="overflow-x:auto">
+    <table>
+      <tr><th>Nº</th><th>Título</th><th>Status</th><th>Conclusão</th><th></th></tr>
+      {% for c in chamados %}
+      <tr>
+        <td>{{ c.numero }}</td>
+        <td>{{ c.titulo }}</td>
+        <td><span class="tag {{ c.status.split()[0] }}">{{ c.status }}</span></td>
+        <td>{{ c.data_conclusao or '—' }}</td>
+        <td>
+          <form method="post" action="/update/{{ c.id }}">
+            <select name="status">{% for s in status %}<option {{ 'selected' if s==c.status }}>{{ s }}</option>{% endfor %}</select>
+            <input type="date" name="data_conclusao" value="{{ c.data_conclusao or '' }}">
+            <button>Salvar</button>
+          </form>
+          <form method="post" action="/delete/{{ c.id }}" onsubmit="return confirm('Excluir chamado?')">
+            <button class="del">✕</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}<tr><td colspan="5">Nenhum chamado cadastrado.</td></tr>
+      {% endfor %}
+    </table></div>
+  </div>
+</main></body></html>
